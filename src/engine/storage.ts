@@ -1,6 +1,6 @@
 import type { Answers, Profile } from './types';
 
-export const STORAGE_KEY = 'radar81:v1';
+export const STORAGE_KEY = 'la81:v1';
 
 export interface SavedState {
   version: 1;

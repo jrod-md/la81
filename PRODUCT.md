@@ -1,4 +1,4 @@
-# Radar 81 (nombre provisional)
+# La 81
 
 Autoevaluación gratuita y visual para que micro y pequeñas empresas de Panamá vean qué tan bien manejan los datos personales según la **Ley 81 de 2019** y su reglamento, el **Decreto Ejecutivo 285 de 2021**.
 
@@ -58,4 +58,4 @@ Regla: **ninguna pregunta ni recomendación sin referencia a una de estas fuente
 ## Pendientes conocidos
 
 - Revisar si la ANTAI publicó normas técnicas mínimas para PyMEs (DE 285 art. 36, último párrafo).
-- Nombre final, dominio y aviso legal revisado.
+- Dominio y aviso legal revisado.
