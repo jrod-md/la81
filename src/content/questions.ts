@@ -387,6 +387,7 @@ export const questions: Question[] = [
     options: [
       { id: 'si', label: 'Sí, sabemos en qué lugares está cada dato', level: 'buena' },
       { id: 'parcial', label: 'Lo corregimos donde lo vemos, pero puede quedar en otros lados', level: 'mejorable' },
+      { id: 'no', label: 'No lo corregimos, o tardamos más de 5 días hábiles', level: 'atender' },
       NO_SE,
     ],
     refs: [
