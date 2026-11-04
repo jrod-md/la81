@@ -2,11 +2,15 @@ import { describe, it, expect } from 'vitest';
 import type { Area, Answers, Effort, Level, Profile, Question, Weight } from './types';
 import {
   computeResults,
+  coreQuestions,
+  deepQuestions,
   findOption,
   isVisible,
   levelForScore,
   visibleQuestions,
 } from './scoring';
+import { questions as contentQuestions } from '../content/questions';
+import { areas as contentAreas } from '../content/profile';
 
 const areas: Area[] = [
   { id: 'inventario', title: 'Inventario', summary: 'Qué datos guardas.' },
@@ -270,5 +274,67 @@ describe('priorities', () => {
     };
     const r = computeResults(qs, areas, answers, {});
     expect(r.priorities.map((f) => f.question.id)).toEqual(['p5', 'p6', 'p4', 'p3', 'p2', 'p1']);
+  });
+});
+
+describe('recorrido esencial', () => {
+  const perfilVacio: Profile = {};
+  const perfilCompleto: Profile = {
+    terceros: ['contador'],
+    personas: ['pacientes', 'menores'],
+    canales: ['biometria'],
+  };
+
+  it('con perfil vacío devuelve las esenciales sin showIf, en orden', () => {
+    expect(coreQuestions(contentQuestions, perfilVacio).map((q) => q.id)).toEqual([
+      'inv-lista',
+      'lic-marketing',
+      'tra-aviso',
+      'der-acceso',
+      'seg-acceso',
+      'seg-respaldo',
+      'ter-compartir',
+      'inc-plan',
+      'cul-confidencialidad',
+    ]);
+  });
+
+  it('con perfil completo incluye las esenciales condicionales', () => {
+    const ids = coreQuestions(contentQuestions, perfilCompleto).map((q) => q.id);
+    expect(ids).toHaveLength(13);
+    for (const id of ['ter-contrato', 'lic-sensibles', 'lic-biometria', 'lic-menores']) {
+      expect(ids).toContain(id);
+    }
+  });
+
+  it('esenciales y profundizar forman una partición de las visibles', () => {
+    for (const profile of [perfilVacio, perfilCompleto]) {
+      const visibles = visibleQuestions(contentQuestions, profile).map((q) => q.id);
+      const core = coreQuestions(contentQuestions, profile).map((q) => q.id);
+      const deep = contentAreas.flatMap((area) =>
+        deepQuestions(contentQuestions, profile, area.id).map((q) => q.id),
+      );
+      const todas = [...core, ...deep];
+      expect(new Set(todas).size, 'hay preguntas repetidas').toBe(todas.length);
+      expect(new Set(todas)).toEqual(new Set(visibles));
+    }
+  });
+
+  it('profundizar en seguridad excluye las esenciales e incluye seg-2fa', () => {
+    const ids = deepQuestions(contentQuestions, perfilVacio, 'seguridad').map((q) => q.id);
+    expect(ids).not.toContain('seg-acceso');
+    expect(ids).not.toContain('seg-respaldo');
+    expect(ids).toContain('seg-2fa');
+  });
+
+  it('con datos sintéticos: core undefined va a profundizar y showIf no cumplido no aparece', () => {
+    const sinteticas: Question[] = [
+      { ...q1, id: 's-core', core: true },
+      { ...q1, id: 's-deep' },
+      { ...q3, id: 's-oculta' },
+    ];
+    expect(coreQuestions(sinteticas, {}).map((q) => q.id)).toEqual(['s-core']);
+    expect(deepQuestions(sinteticas, {}, 'inventario').map((q) => q.id)).toEqual(['s-deep']);
+    expect(deepQuestions(sinteticas, {}, 'licitud')).toEqual([]);
   });
 });

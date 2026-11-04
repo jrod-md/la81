@@ -3,6 +3,19 @@ import type { Area, ProfileQuestion } from '../engine/types';
 /** Preguntas iniciales: adaptan qué preguntas del cuestionario se muestran. */
 export const profileQuestions: ProfileQuestion[] = [
   {
+    id: 'tipo',
+    prompt: '¿Qué tipo de negocio tienes?',
+    help: 'Con esto dibujamos tu local. Si no está, elige el más parecido.',
+    multi: false,
+    options: [
+      { id: 'tienda', label: 'Tienda, minisúper o abarrotería' },
+      { id: 'fonda', label: 'Fonda, restaurante o cafetería' },
+      { id: 'farmacia', label: 'Farmacia, clínica o consultorio' },
+      { id: 'salon', label: 'Salón de belleza, barbería o spa' },
+      { id: 'oficina', label: 'Oficina o servicios profesionales' },
+    ],
+  },
+  {
     id: 'tamano',
     prompt: '¿Cuántas personas trabajan en tu negocio, contándote a ti?',
     multi: false,

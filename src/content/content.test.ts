@@ -79,6 +79,20 @@ describe('contenido: preguntas', () => {
       expect(efforts.has(q.effort), `effort inválido en ${q.id}`).toBe(true);
     }
   });
+
+  it('cada área tiene al menos una pregunta esencial sin showIf', () => {
+    for (const area of areas) {
+      const hasCore = questions.some((q) => q.area === area.id && q.core === true && !q.showIf);
+      expect(hasCore, `área ${area.id} no tiene pregunta esencial sin showIf`).toBe(true);
+    }
+  });
+
+  it('las preguntas esenciales tienen weight 2 o 3', () => {
+    for (const q of questions) {
+      if (q.core !== true) continue;
+      expect(q.weight === 2 || q.weight === 3, `weight inválido en la esencial ${q.id}`).toBe(true);
+    }
+  });
 });
 
 describe('contenido: perfil y áreas', () => {
