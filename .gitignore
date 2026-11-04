@@ -4,3 +4,7 @@ dist/
 .env
 .dev.vars
 .DS_Store
+.claude/
+
+# Gambarino (licencia ITF FFL): se descarga al compilar, no se redistribuye
+public/fonts/
