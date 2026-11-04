@@ -70,6 +70,8 @@ export interface Question {
 export interface ProfileOption {
   id: string;
   label: string;
+  /** En preguntas multi: al elegirla se desmarcan las demás, y viceversa. */
+  exclusive?: boolean;
 }
 
 export interface ProfileQuestion {

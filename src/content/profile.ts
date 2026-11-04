@@ -61,7 +61,7 @@ export const profileQuestions: ProfileQuestion[] = [
       { id: 'ti', label: 'Proveedor de sistema o soporte técnico' },
       { id: 'marketing', label: 'Agencia de marketing o publicidad' },
       { id: 'delivery', label: 'Servicio de mensajería o delivery' },
-      { id: 'ninguno', label: 'Nadie, todo lo hacemos nosotros' },
+      { id: 'ninguno', label: 'Nadie, todo lo hacemos nosotros', exclusive: true },
     ],
   },
 ];
