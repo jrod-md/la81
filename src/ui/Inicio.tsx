@@ -85,7 +85,7 @@ export function Inicio({ app }: { app: AppState }) {
                 <button type="button" className="btn" onClick={() => app.go({ name: 'perfil', step: 0 })}>
                   Dibujar mi negocio <i aria-hidden="true">→</i>
                 </button>
-                <span className="micro">12 minutos · Gratis · Nada sale de tu teléfono</span>
+                <span className="micro">5 minutos · Gratis · Nada sale de tu teléfono</span>
               </>
             )}
           </div>
@@ -147,12 +147,12 @@ export function Inicio({ app }: { app: AppState }) {
           <li>
             <span className="how__n">01</span>
             <h3>Cuéntanos de tu negocio</h3>
-            <p>Cinco preguntas rápidas. Con cada respuesta se dibuja tu local: tus papeles, tu WhatsApp, tus proveedores.</p>
+            <p>Seis preguntas rápidas. Con cada respuesta se dibuja tu local: tus papeles, tu WhatsApp, tus proveedores.</p>
           </li>
           <li>
             <span className="how__n">02</span>
             <h3>Recorre cada lugar</h3>
-            <p>Situaciones del día a día, una a la vez. El dibujo te lleva al lugar del que habla cada pregunta.</p>
+            <p>Un recorrido corto por los ocho lugares donde viven datos. Cada respuesta se nota en el dibujo; después puedes profundizar en el área que quieras.</p>
           </li>
           <li>
             <span className="how__n">03</span>
