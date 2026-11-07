@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import { areas, profileQuestions } from '../content/profile';
+import { areas } from '../content/profile';
 import { Drawing } from '../drawing/Drawing';
 import { buildScene, featuresFromProfile } from '../drawing/scene';
 import type { AreaId, Level } from '../engine/types';
 import type { AppState } from './useAppState';
-import { EFFORT_LABEL, formatDate, formatRef } from './labels';
+import { EFFORT_LABEL } from './labels';
+import { Reporte } from './Reporte';
 import { LevelMark, LevelTag, RefList, ScreenTitle, useResults } from './parts';
 
 const HEADLINE: Record<Level, string> = {
@@ -34,24 +35,15 @@ export function Resultados({ app }: { app: AppState }) {
 
   const nAtender = results.priorities.filter((f) => f.level === 'atender').length;
   const nMejorable = results.priorities.length - nAtender;
-  const skipped = results.visible - results.answered;
+  const skipped = app.core.filter((q) => app.answers[q.id] === undefined).length;
   const placeOf = (area: AreaId) => scene.callouts.find((c) => c.area === area);
 
-  const profileSummary = profileQuestions.map((pq) => {
-    const ids = app.profile[pq.id] ?? [];
-    const labels = pq.options.filter((o) => ids.includes(o.id)).map((o) => o.label);
-    return { id: pq.id, prompt: pq.prompt, value: labels.length > 0 ? labels.join(', ') : 'Ninguna de las opciones' };
-  });
 
   return (
     <div className="resultados">
-      <header className="print-only report-head">
-        <p>La 81 · Reporte de autoevaluación de protección de datos</p>
-        <p>{formatDate(today)}</p>
-      </header>
-
+      <Reporte app={app} results={results} scene={scene} statuses={statuses} today={today} />
       <section className="open open--results">
-        <p className="kicker">Tu negocio, revisado</p>
+        <p className="kicker">{app.quick ? 'Revisión rápida de tu negocio' : 'Tu negocio, revisado a fondo'}</p>
         <ScreenTitle focusKey="resultados" className="display display--results">
           {results.overallLevel ? HEADLINE[results.overallLevel] : 'Todavía no hay suficientes respuestas'}
         </ScreenTitle>
@@ -83,7 +75,7 @@ export function Resultados({ app }: { app: AppState }) {
         </div>
         {skipped > 0 && (
           <p className="micro skipped">
-            {plural(skipped, 'pregunta sin responder', 'preguntas sin responder')}; no cuentan en el resultado.{' '}
+            {plural(skipped, 'pregunta del recorrido sin responder', 'preguntas del recorrido sin responder')}; no cuentan en el resultado.{' '}
             <button
               type="button"
               className="link no-print"
@@ -142,23 +134,16 @@ export function Resultados({ app }: { app: AppState }) {
                   </p>
                   {a.level ? <LevelTag level={a.level} /> : <span className="lvl lvl--na">Sin respuestas</span>}
                   {a.score !== null && <span className="visually-hidden"> ({a.score} de 100)</span>}
+                  {app.deepPending[a.area.id] > 0 && (
+                    <button type="button" className="link note__deep no-print" onClick={() => app.go({ name: 'profundizar', area: a.area.id, index: 0 })}>
+                      Profundizar · {plural(app.deepPending[a.area.id], 'pregunta más', 'preguntas más')} →
+                    </button>
+                  )}
                 </li>
               );
             })}
           </ol>
         </div>
-      </section>
-
-      <section className="print-only report-profile" aria-label="Perfil del negocio">
-        <h2 className="rubric">Perfil del negocio</h2>
-        <dl>
-          {profileSummary.map((p) => (
-            <div key={p.id}>
-              <dt>{p.prompt}</dt>
-              <dd>{p.value}</dd>
-            </div>
-          ))}
-        </dl>
       </section>
 
       {results.priorities.length > 0 && (
@@ -199,9 +184,6 @@ export function Resultados({ app }: { app: AppState }) {
                         <RefList refs={f.question.refs} />
                       </div>
                     </details>
-                    <p className="print-only step__print">
-                      Tu respuesta: {f.option.label}. Fuentes: {f.question.refs.map(formatRef).join('; ')}.
-                    </p>
                   </div>
                 </li>
               );
@@ -258,13 +240,6 @@ export function Resultados({ app }: { app: AppState }) {
         </div>
       </section>
 
-      <footer className="print-only report-foot">
-        <p>
-          Autoevaluación orientativa basada en la Ley 81 de 2019 y el Decreto Ejecutivo 285 de 2021. No es asesoría
-          legal ni una auditoría, y no certifica cumplimiento. Las respuestas se procesaron solo en el navegador de
-          quien completó la evaluación.
-        </p>
-      </footer>
     </div>
   );
 }

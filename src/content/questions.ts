@@ -34,6 +34,7 @@ export const questions: Question[] = [
       'Haz una lista sencilla (una hoja basta): qué datos guardas, de quién, para qué, dónde están y quién puede verlos. Es la base de la "ficha técnica" que pide la ley.',
     weight: 3,
     effort: 'medio',
+    core: true,
   },
   {
     id: 'inv-finalidad',
@@ -167,6 +168,7 @@ export const questions: Question[] = [
       'Pide el permiso para promociones aparte de la compra (una casilla o un mensaje) y guarda la respuesta. Incluye siempre una forma fácil de darse de baja.',
     weight: 3,
     effort: 'rapido',
+    core: true,
   },
   {
     id: 'lic-prueba',
@@ -228,6 +230,7 @@ export const questions: Question[] = [
       'Usa un formulario de consentimiento específico para datos sensibles, que explique para qué se usan, y guárdalo firmado (en papel o digital).',
     weight: 3,
     effort: 'medio',
+    core: true,
     showIf: { profile: 'personas', anyOf: ['pacientes'] },
   },
   {
@@ -250,6 +253,7 @@ export const questions: Question[] = [
       'Pide autorización expresa y por escrito para usar datos biométricos, explica para qué se usan y limita quién puede acceder a ellos.',
     weight: 3,
     effort: 'medio',
+    core: true,
     showIf: { profile: 'canales', anyOf: ['biometria'] },
   },
   {
@@ -270,6 +274,7 @@ export const questions: Question[] = [
       'Incluye en la matrícula o inscripción una autorización del acudiente para el uso de los datos del menor (y aparte para fotos o publicaciones).',
     weight: 3,
     effort: 'rapido',
+    core: true,
     showIf: { profile: 'personas', anyOf: ['menores'] },
   },
   {
@@ -316,6 +321,7 @@ export const questions: Question[] = [
       'Agrega un aviso corto donde pides datos: quién eres y cómo contactarte, para qué usas los datos, con quién los compartes, cuánto tiempo los guardas y cómo pedir verlos, corregirlos o borrarlos.',
     weight: 3,
     effort: 'rapido',
+    core: true,
   },
   {
     id: 'tra-web',
@@ -378,6 +384,7 @@ export const questions: Question[] = [
       'Escribe un procedimiento corto: quién recibe la solicitud, cómo se verifica la identidad, dónde se busca y quién responde, siempre en menos de 10 días hábiles.',
     weight: 3,
     effort: 'medio',
+    core: true,
   },
   {
     id: 'der-corregir',
@@ -467,6 +474,7 @@ export const questions: Question[] = [
       'Separa carpetas y permisos: planilla solo para administración; clientes solo para quien los atiende. En la nube se hace compartiendo con personas específicas, no "con cualquiera que tenga el enlace".',
     weight: 3,
     effort: 'rapido',
+    core: true,
   },
   {
     id: 'seg-usuarios',
@@ -526,6 +534,7 @@ export const questions: Question[] = [
       'Configura una copia automática (en la nube o en un disco que no quede conectado siempre) y prueba restaurar un archivo cada cierto tiempo.',
     weight: 3,
     effort: 'medio',
+    core: true,
   },
   {
     id: 'seg-actualizaciones',
@@ -628,6 +637,7 @@ export const questions: Question[] = [
       'Agrega una cláusula o anexo de protección de datos: usar los datos solo según tus instrucciones, mantener la confidencialidad y la seguridad, avisarte de incidentes y devolver o borrar los datos al terminar.',
     weight: 3,
     effort: 'medio',
+    core: true,
     showIf: { profile: 'terceros', anyOf: ['contador', 'ti', 'marketing', 'delivery'] },
   },
   {
@@ -673,6 +683,7 @@ export const questions: Question[] = [
       'No compartas listas sin el permiso de las personas o sin otra base legal clara, y deja constancia escrita de cada entrega: a quién, para qué y por cuánto tiempo.',
     weight: 3,
     effort: 'rapido',
+    core: true,
   },
 
   // ───────────── Si algo sale mal ─────────────
@@ -695,6 +706,7 @@ export const questions: Question[] = [
       'Escribe un plan de una página: 1) cambiar contraseñas y cerrar sesiones, 2) averiguar qué datos se afectaron, 3) avisar a la ANTAI y a los afectados en 72 horas si hay riesgo, 4) anotar todo lo ocurrido.',
     weight: 3,
     effort: 'medio',
+    core: true,
   },
   {
     id: 'inc-72h',
@@ -770,6 +782,7 @@ export const questions: Question[] = [
       'Agrega una cláusula de confidencialidad de datos personales al contrato o pide firmar un compromiso breve, también a los colaboradores actuales.',
     weight: 2,
     effort: 'rapido',
+    core: true,
   },
   {
     id: 'cul-capacitacion',

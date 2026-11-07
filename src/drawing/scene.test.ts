@@ -9,6 +9,7 @@ import {
   AREA_ORDER,
   type Scene,
   type SceneFeatures,
+  type Tipo,
 } from './scene';
 
 const NONE: SceneFeatures = {
@@ -198,6 +199,88 @@ describe('focusBox', () => {
       expect(box[1]).toBeGreaterThanOrEqual(full[1] - 1e-6);
       expect(box[0] + box[2]).toBeLessThanOrEqual(full[0] + full[2] + 1e-6);
       expect(box[1] + box[3]).toBeLessThanOrEqual(full[1] + full[3] + 1e-6);
+    }
+  });
+});
+
+describe('tipos de negocio', () => {
+  const TIPOS: Tipo[] = ['farmacia', 'fonda', 'salon', 'tienda', 'oficina'];
+
+  it('featuresFromProfile conserva el tipo de negocio válido', () => {
+    for (const tipo of TIPOS) {
+      expect(featuresFromProfile({ tipo: [tipo] }).tipo).toBe(tipo);
+    }
+    expect(featuresFromProfile({ tipo: ['otro'] }).tipo).toBeUndefined();
+    expect(featuresFromProfile({}).tipo).toBeUndefined();
+  });
+
+  it('cada tipo dibuja una escena completa y válida', () => {
+    for (const tipo of TIPOS) {
+      for (const base of [ALL, NONE]) {
+        const scene = buildScene({ ...base, tipo });
+        const list = ids(scene);
+        expect(new Set(list).size).toBe(list.length);
+        expect(scene.callouts).toHaveLength(8);
+        scene.callouts.forEach((c, i) => {
+          expect(c.n).toBe(i + 1);
+          expect(c.area).toBe(AREA_ORDER[i]!);
+        });
+        for (const item of scene.items) {
+          expect(item.html).not.toContain('NaN');
+          expect(item.html).not.toContain('undefined');
+          expect(item.html).not.toContain('Infinity');
+          expect(item.html).not.toContain('<script');
+        }
+        for (const flow of scene.flows) {
+          expect(flow.html).not.toContain('NaN');
+          expect(flow.html).not.toContain('undefined');
+          expect(flow.html).not.toContain('Infinity');
+          expect(flow.html).not.toContain('<script');
+        }
+        for (const id of ['mostrador', 'aviso', 'cliente', 'persona-mostrador', 'cortina', 'sombras']) {
+          expect(list).toContain(id);
+        }
+      }
+    }
+  });
+
+  it('dibuja las piezas propias de cada tipo', () => {
+    const fonda = ids(buildScene({ ...ALL, tipo: 'fonda' }));
+    for (const id of ['estufa', 'menu', 'mesa-1', 'mesa-2', 'taburete-0']) expect(fonda).toContain(id);
+    expect(fonda).not.toContain('gondola');
+
+    const salon = ids(buildScene({ ...ALL, tipo: 'salon' }));
+    for (const id of ['espejo-0', 'espejo-1', 'sillon-0', 'banca']) expect(salon).toContain(id);
+    expect(salon).not.toContain('gondola');
+
+    const tienda = ids(buildScene({ ...ALL, tipo: 'tienda' }));
+    for (const id of ['gondola', 'gondola-2', 'nevera', 'nevera-2']) expect(tienda).toContain(id);
+
+    const farmacia = ids(buildScene({ ...ALL, tipo: 'farmacia' }));
+    for (const id of ['gondola', 'nevera', 'horario']) expect(farmacia).toContain(id);
+    expect(farmacia).not.toContain('gondola-2');
+
+    const oficina = ids(buildScene({ ...ALL, tipo: 'oficina' }));
+    for (const id of ['diplomas', 'espera-0', 'mesita']) expect(oficina).toContain(id);
+    expect(oficina).not.toContain('gondola');
+    expect(oficina).not.toContain('nevera');
+  });
+
+  it('sin tipo se dibuja la tienda', () => {
+    expect(ids(buildScene(ALL))).toEqual(ids(buildScene({ ...ALL, tipo: 'tienda' })));
+  });
+
+  it('la persona extra de sala aparece con equipo de 3', () => {
+    const conPersona: Tipo[] = ['oficina', 'fonda', 'salon'];
+    for (const tipo of conPersona) {
+      expect(ids(buildScene({ ...ALL, tipo, equipo: 3 }))).toContain('persona-sala');
+      expect(ids(buildScene({ ...ALL, tipo, equipo: 1 }))).not.toContain('persona-sala');
+    }
+  });
+
+  it('el encuadre fijo no depende del tipo', () => {
+    for (const tipo of TIPOS) {
+      expect(buildScene({ ...ALL, tipo }).viewBox).toEqual(sceneFrame());
     }
   });
 });

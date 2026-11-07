@@ -2,6 +2,7 @@ import type {
   Answers,
   AnswerOption,
   Area,
+  AreaId,
   AreaResult,
   Effort,
   Finding,
@@ -37,6 +38,22 @@ export function isVisible(question: Question, profile: Profile): boolean {
 /** Preguntas visibles, conservando el orden original. */
 export function visibleQuestions(questions: readonly Question[], profile: Profile): Question[] {
   return questions.filter((question) => isVisible(question, profile));
+}
+
+/** Preguntas del recorrido esencial visibles para el perfil, en el orden original. */
+export function coreQuestions(questions: readonly Question[], profile: Profile): Question[] {
+  return visibleQuestions(questions, profile).filter((question) => question.core === true);
+}
+
+/** Preguntas para profundizar en un área: visibles, del área y no esenciales, en el orden original. */
+export function deepQuestions(
+  questions: readonly Question[],
+  profile: Profile,
+  area: AreaId,
+): Question[] {
+  return visibleQuestions(questions, profile).filter(
+    (question) => question.area === area && question.core !== true,
+  );
 }
 
 /** Opción de una pregunta por id, o undefined si no existe. */

@@ -1,21 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { profileQuestions } from '../content/profile';
+import { areas, profileQuestions } from '../content/profile';
 import { questions } from '../content/questions';
-import { visibleQuestions } from '../engine/scoring';
+import { coreQuestions, deepQuestions, visibleQuestions } from '../engine/scoring';
 import { clearState, loadState, saveState } from '../engine/storage';
-import type { Answers, Profile, Question } from '../engine/types';
+import type { Answers, AreaId, Profile, Question } from '../engine/types';
 
 export type Screen =
   | { name: 'inicio' }
   | { name: 'perfil'; step: number }
   | { name: 'cuestionario'; index: number }
+  | { name: 'profundizar'; area: AreaId; index: number }
   | { name: 'resultados' };
 
 const INICIO: Screen = { name: 'inicio' };
 
 function isScreen(value: unknown): value is Screen {
   if (typeof value !== 'object' || value === null) return false;
-  const s = value as { name?: unknown; step?: unknown; index?: unknown };
+  const s = value as { name?: unknown; step?: unknown; index?: unknown; area?: unknown };
   switch (s.name) {
     case 'inicio':
     case 'resultados':
@@ -24,6 +25,8 @@ function isScreen(value: unknown): value is Screen {
       return typeof s.step === 'number';
     case 'cuestionario':
       return typeof s.index === 'number';
+    case 'profundizar':
+      return typeof s.index === 'number' && areas.some((area) => area.id === s.area);
     default:
       return false;
   }
@@ -38,6 +41,8 @@ export function useAppState() {
   const [savedAt, setSavedAt] = useState<string | null>(saved?.updatedAt ?? null);
 
   const visible: Question[] = useMemo(() => visibleQuestions(questions, profile), [profile]);
+  const core: Question[] = useMemo(() => coreQuestions(questions, profile), [profile]);
+  const deep = useCallback((area: AreaId) => deepQuestions(questions, profile, area), [profile]);
 
   // El botón "atrás" del navegador navega entre pantallas en lugar de salir del sitio.
   useEffect(() => {
@@ -90,8 +95,22 @@ export function useAppState() {
     return v !== undefined && (pq.multi || v.length > 0);
   });
 
-  /** Primera pregunta sin responder, para "Continuar". */
-  const firstPending = visible.findIndex((q) => answers[q.id] === undefined);
+  /** Primera pregunta esencial sin responder, para "Continuar". */
+  const firstPending = core.findIndex((q) => answers[q.id] === undefined);
+
+  /** Preguntas de profundizar sin responder, por área. */
+  const deepPending: Record<AreaId, number> = useMemo(() => {
+    const pending = {} as Record<AreaId, number>;
+    for (const area of areas) {
+      pending[area.id] = deepQuestions(questions, profile, area.id).filter(
+        (q) => answers[q.id] === undefined,
+      ).length;
+    }
+    return pending;
+  }, [profile, answers]);
+
+  /** Hay alguna pregunta visible no esencial sin responder. */
+  const quick = visible.some((q) => q.core !== true && answers[q.id] === undefined);
 
   return {
     screen,
@@ -99,6 +118,10 @@ export function useAppState() {
     profile,
     answers,
     visible,
+    core,
+    deep,
+    deepPending,
+    quick,
     savedAt,
     answeredVisible,
     profileDone,

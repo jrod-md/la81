@@ -65,6 +65,8 @@ export interface Question {
   effort: Effort;
   /** Si existe, la pregunta solo se muestra cuando se cumple. */
   showIf?: ProfileCondition;
+  /** Pregunta del recorrido esencial. Las demás quedan para "profundizar" en su área. */
+  core?: boolean;
 }
 
 export interface ProfileOption {
