@@ -57,12 +57,14 @@ interface Props {
   label: string;
   /** Encuadre de la cámara dado desde afuera (el recorrido calcula el suyo). */
   view?: ViewBox;
+  /** Sin los puntos numerados: el recorrido pone su propio globo. */
+  bare?: boolean;
 }
 
 const ease = (t: number) => 1 - Math.pow(1 - t, 4);
 const fmt = (v: ViewBox) => v.map((n) => n.toFixed(1)).join(' ');
 
-export function Drawing({ scene, statuses, active, focus, hot, onHot, onSelect, intro = true, label, view }: Props) {
+export function Drawing({ scene, statuses, active, focus, hot, onHot, onSelect, intro = true, label, view, bare }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const current = useRef<ViewBox | null>(null);
   // Cada pieza conserva el retraso con el que apareció la primera vez;
@@ -96,7 +98,8 @@ export function Drawing({ scene, statuses, active, focus, hot, onHot, onSelect, 
     const dur = 1100;
     let raf = 0;
     const step = (now: number) => {
-      const t = Math.min(1, (now - t0) / dur);
+      // El primer cuadro puede traer una marca de tiempo anterior a t0.
+      const t = Math.min(1, Math.max(0, (now - t0) / dur));
       const k = ease(t);
       const v = from.map((n, i) => n + (target[i]! - n) * k) as ViewBox;
       current.current = v;
@@ -118,7 +121,7 @@ export function Drawing({ scene, statuses, active, focus, hot, onHot, onSelect, 
   return (
     <svg
       ref={svgRef}
-      className={`plan${intro ? '' : ' plan--still'}${focus ? ' plan--zoom' : ''}`}
+      className={`plan${intro ? '' : ' plan--still'}${focus ? ' plan--zoom' : ''}${bare ? ' plan--bare' : ''}`}
       viewBox={fmt(current.current ?? target)}
       role="group"
       aria-label={label}

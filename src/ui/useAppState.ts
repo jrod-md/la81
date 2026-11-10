@@ -22,8 +22,13 @@ function urlFor(screen: Screen): string {
   return screen.name === 'metodologia' ? base + METODO_HASH : base;
 }
 
-function initialScreen(): Screen {
-  return window.location.hash === METODO_HASH ? { name: 'metodologia' } : INICIO;
+/** Sin portada: quien llega por primera vez empieza en la primera pregunta; quien ya empezó, en su negocio. */
+function homeFor(started: boolean): Screen {
+  return started ? INICIO : { name: 'perfil', step: 0 };
+}
+
+function initialScreen(started: boolean): Screen {
+  return window.location.hash === METODO_HASH ? { name: 'metodologia' } : homeFor(started);
 }
 
 function isScreen(value: unknown): value is Screen {
@@ -48,7 +53,8 @@ function isScreen(value: unknown): value is Screen {
 /** Estado de la app: pantalla actual, perfil y respuestas. Guarda solo en este dispositivo. */
 export function useAppState() {
   const saved = useMemo(() => loadState(), []);
-  const [screen, setScreen] = useState<Screen>(initialScreen);
+  const savedStarted = !!saved && (Object.keys(saved.profile).length > 0 || Object.keys(saved.answers).length > 0);
+  const [screen, setScreen] = useState<Screen>(() => initialScreen(savedStarted));
   const [profile, setProfile] = useState<Profile>(saved?.profile ?? {});
   const [answers, setAnswers] = useState<Answers>(saved?.answers ?? {});
   const [savedAt, setSavedAt] = useState<string | null>(saved?.updatedAt ?? null);
@@ -59,12 +65,12 @@ export function useAppState() {
 
   // El botón "atrás" del navegador navega entre pantallas en lugar de salir del sitio.
   useEffect(() => {
-    const first = initialScreen();
+    const first = initialScreen(savedStarted);
     window.history.replaceState({ screen: first }, '', urlFor(first));
     const onPop = (event: PopStateEvent) => {
       const state: unknown = event.state;
       const next = typeof state === 'object' && state !== null ? (state as { screen?: unknown }).screen : undefined;
-      setScreen(isScreen(next) ? next : INICIO);
+      setScreen(isScreen(next) ? next : first);
     };
     // Enlace directo a la metodología escrito o pegado con la página ya abierta.
     const onHash = () => {
@@ -109,10 +115,14 @@ export function useAppState() {
     setProfile({});
     setAnswers({});
     setSavedAt(null);
-    window.history.replaceState({ screen: INICIO }, '', urlFor(INICIO));
-    setScreen(INICIO);
+    const start = homeFor(false);
+    window.history.replaceState({ screen: start }, '', urlFor(start));
+    setScreen(start);
     window.scrollTo({ top: 0 });
   }, []);
+
+  const started = Object.keys(profile).length > 0 || Object.keys(answers).length > 0;
+  const home = homeFor(started);
 
   const answeredVisible = visible.filter((q) => answers[q.id] !== undefined).length;
   // Completo cuando cada pregunta de perfil fue respondida (las multi pueden quedar vacías a propósito).
@@ -149,6 +159,8 @@ export function useAppState() {
     deepPending,
     quick,
     savedAt,
+    started,
+    home,
     answeredVisible,
     profileDone,
     firstPending,

@@ -156,3 +156,19 @@ export interface MatrixRow {
   question: Question;
   area: Area;
 }
+
+/** Una pregunta contada como algo que pasa en el local durante el día. */
+export interface Escena {
+  /** Hora del día en 24 h, "HH:MM". Ordena el recorrido y mueve el reloj. */
+  hora: string;
+  /** Quién habla o qué ocurre, en pocas palabras. */
+  quien: string;
+  /** Lo que se dice o lo que pasa. */
+  texto: string;
+  /** true si `texto` es algo que alguien dice (se dibuja como globo de diálogo). */
+  habla?: boolean;
+  /** Qué queda para mañana si la respuesta no es buena: en infinitivo, corto (lista del día). */
+  tarea: string;
+  /** Por id de opción: cómo se dice la respuesta en primera persona y qué se aprende al elegirla. */
+  opciones: Record<string, { accion: string; efecto?: string }>;
+}

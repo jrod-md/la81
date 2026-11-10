@@ -115,3 +115,31 @@ describe('contenido: perfil y áreas', () => {
     }
   });
 });
+
+describe('contenido: escenas del día', () => {
+  it('cada pregunta esencial tiene escena y cada opción su acción', async () => {
+    const { escenas } = await import('./escenas');
+    for (const q of questions) {
+      if (q.core !== true) continue;
+      const e = escenas[q.id];
+      expect(e, `la esencial ${q.id} no tiene escena`).toBeDefined();
+      if (!e) continue;
+      expect(e.quien.trim().length > 0 && e.texto.trim().length > 0, `escena vacía en ${q.id}`).toBe(true);
+      expect(e.tarea.trim().length > 0 && e.tarea.length <= 34, `tarea de ${q.id}`).toBe(true);
+      expect(Object.keys(e.opciones).sort(), `opciones de la escena ${q.id}`).toEqual(q.options.map((o) => o.id).sort());
+      for (const o of q.options) {
+        const accion = e.opciones[o.id]?.accion ?? '';
+        expect(accion.trim().length > 0 && accion.length <= 32, `acción de ${q.id}/${o.id}`).toBe(true);
+      }
+    }
+  });
+
+  it('las escenas pertenecen a preguntas existentes y sus horas avanzan con el recorrido', async () => {
+    const { escenas } = await import('./escenas');
+    const ids = new Set(questions.map((q) => q.id));
+    for (const id of Object.keys(escenas)) expect(ids.has(id), `escena huérfana ${id}`).toBe(true);
+    const horas = questions.filter((q) => escenas[q.id]).map((q) => escenas[q.id]?.hora ?? '');
+    for (const h of horas) expect(/^\d{2}:\d{2}$/.test(h), `hora inválida ${h}`).toBe(true);
+    expect([...horas].sort()).toEqual(horas);
+  });
+});

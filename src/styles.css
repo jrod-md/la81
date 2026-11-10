@@ -1417,6 +1417,725 @@ ul {
     color: #6b6660;
   }
 }
+/* ── Cuarto: el dibujo ocupa la ventana y la pregunta flota abajo ── */
+.mast {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: 0.4rem;
+}
+.mast__link {
+  font-size: 0.875rem;
+}
+.shell--room .mast {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  width: auto;
+  margin: 0;
+  padding-inline: var(--gutter);
+  border-bottom: 0;
+}
+.mast .logo {
+  padding-left: 0;
+}
+.shell--room .main {
+  width: 100%;
+  padding: 0;
+}
+.room {
+  --sky: var(--paper);
+  --stage-h: clamp(16rem, 44dvh, 30rem);
+  position: relative;
+}
+.room[data-parte='manana'] {
+  --sky: oklch(0.958 0.02 232);
+}
+.room[data-parte='mediodia'] {
+  --sky: oklch(0.972 0.006 95);
+}
+.room[data-parte='tarde'] {
+  --sky: oklch(0.948 0.04 78);
+}
+.room[data-parte='cierre'] {
+  --sky: oklch(0.9 0.035 292);
+}
+.room__stage {
+  position: relative;
+  height: var(--stage-h);
+  overflow: hidden;
+  background: var(--sky);
+  transition: background-color 1.4s ease;
+}
+/* Velo arriba: el reloj y la barra se leen sobre cualquier parte del dibujo. */
+.room__stage::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 9rem;
+  background: linear-gradient(var(--sky) 62%, transparent);
+  pointer-events: none;
+}
+.room__stage > .plan {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.plan--bare .co {
+  display: none;
+}
+.room__top {
+  position: absolute;
+  top: 3.6rem;
+  left: var(--gutter);
+  right: var(--gutter);
+  z-index: 5;
+}
+.room__step,
+.day__ampm,
+.day__count,
+.day__deep,
+.says__who,
+.dock__q,
+.manana__h {
+  font: 700 0.6875rem/1.3 var(--body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.room__step b {
+  color: var(--ink);
+}
+.room__top .ticks {
+  max-width: 22rem;
+  margin-top: 0.35rem;
+}
+.room__dock {
+  position: relative;
+  z-index: 6;
+  margin-top: -1.5rem;
+  padding: 0 0.75rem calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+/* La tarjeta */
+.sheet {
+  max-width: 64rem;
+  margin-inline: auto;
+  padding: 1.1rem 1.1rem 0.8rem;
+  background: oklch(0.993 0.003 85);
+  border: 1px solid var(--ink);
+  border-radius: 1rem;
+  box-shadow: 0 18px 40px -22px oklch(0.2 0.01 60 / 0.45);
+  animation: la81-card 0.45s var(--ease) both;
+}
+.sheet__intro {
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--hair);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+.sheet__set {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.sheet__set legend {
+  padding: 0;
+}
+.sheet__q {
+  font: 400 clamp(1.5rem, 3vw, 2.1rem) / 1.08 var(--display);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  outline: none;
+}
+.sheet__hint {
+  margin-top: 0.3rem;
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+.sheet__nav,
+.dock__nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.sheet__nav {
+  margin-top: 1rem;
+}
+.sheet .confirm {
+  font-size: 0.875rem;
+}
+
+/* Fichas con dibujo */
+.fichas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+.ficha {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.15rem;
+  min-height: 6.25rem;
+  padding: 0.65rem 0.35rem 0.6rem;
+  text-align: center;
+  background: var(--paper);
+  border: 1px solid var(--hair);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    transform 0.25s var(--ease);
+}
+.ficha input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.ficha__ico {
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: 0.2rem;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ficha__ico .f {
+  fill: var(--d-wash);
+  transition: fill 0.25s;
+}
+.ficha__t {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+.ficha__s {
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--ink-2);
+}
+.ficha__mark {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--hair);
+  border-radius: 50%;
+  background: var(--paper);
+}
+.ficha__mark--check {
+  border-radius: 0.25rem;
+}
+.ficha:hover {
+  border-color: var(--ink);
+}
+.ficha:active {
+  transform: scale(0.97);
+}
+.ficha:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.ficha.is-on {
+  border-color: var(--ink);
+  background: var(--hl-soft);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.ficha.is-on .ficha__ico .f {
+  fill: var(--hl);
+}
+.ficha.is-on .ficha__mark {
+  border-color: var(--ink);
+  background: var(--ink);
+}
+.ficha.is-on .ficha__mark::after {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  top: 0.12rem;
+  width: 0.28rem;
+  height: 0.5rem;
+  border: solid var(--paper);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ── Un día en tu negocio ────────────────────────────── */
+.room--day {
+  --stage-h: clamp(17rem, 46dvh, 30rem);
+}
+.day__bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem 1.25rem;
+}
+.day__clock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  line-height: 1;
+}
+.day__h {
+  font: 400 clamp(2rem, 5vw, 3.75rem) / 0.9 var(--display);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  animation: la81-tick 0.5s var(--ease) both;
+}
+.day__deep b {
+  display: block;
+  margin-top: 0.2rem;
+  font: 400 1.4rem/1.1 var(--display);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--ink);
+}
+.day__count {
+  padding-bottom: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.track {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 1.5rem;
+  margin-bottom: 0.2rem;
+  border-bottom: 1px solid var(--ink);
+}
+.track__tick {
+  width: 1px;
+  height: 0.45rem;
+  background: var(--ink);
+}
+.track__tick[data-s='buena'],
+.track__tick[data-s='mejorable'],
+.track__tick[data-s='atender'] {
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-inline: -0.25rem;
+  margin-bottom: -0.25rem;
+  border-radius: 50%;
+  background: var(--s-buena);
+}
+.track__tick[data-s='mejorable'] {
+  background: var(--s-mejorable);
+}
+.track__tick[data-s='atender'] {
+  background: var(--paper);
+  box-shadow: inset 0 0 0 2px var(--s-atender);
+}
+.track__tick[data-s='na'] {
+  height: 0.2rem;
+}
+.track__sun {
+  position: absolute;
+  left: calc(var(--p) * 100%);
+  bottom: 0.55rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-left: -0.4rem;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--hl);
+  transition: left 0.9s var(--ease);
+}
+.says {
+  animation: la81-card 0.5s var(--ease) both;
+}
+.dock .says {
+  margin-bottom: 0.9rem;
+}
+.says__t {
+  margin-top: 0.35rem;
+  font: 400 clamp(1.4rem, 2.3vw, 1.9rem) / 1.14 var(--display);
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  outline: none;
+}
+.dock__set {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.dock__q {
+  padding: 0;
+}
+.acts {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.act {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.25rem;
+  min-height: 3rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--hair);
+  border-radius: 0.65rem;
+  background: var(--paper);
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    opacity 0.3s;
+}
+.act input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.act__k {
+  font: 400 1.1rem/1 var(--display);
+  color: var(--ink-2);
+}
+.act__t {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.act:hover {
+  border-color: var(--ink);
+}
+.act:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.act.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.act.is-on .act__k {
+  color: var(--paper);
+}
+.act.is-off {
+  opacity: 0.55;
+}
+.act.is-off:hover {
+  opacity: 1;
+}
+.dock__foot {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.8rem;
+}
+.fx {
+  min-height: 3.5rem;
+}
+.fx__in {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
+  animation: la81-card 0.45s var(--ease) both;
+}
+.fx__t {
+  font-size: 1rem;
+  line-height: 1.45;
+  max-width: 62ch;
+}
+.fx .refs {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.fx__hint {
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+@keyframes la81-tick {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+  }
+}
+
+/* Lo que va del día: la cuenta y la lista para mañana */
+.manana {
+  position: absolute;
+  z-index: 7;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: calc(100% + 0.5rem);
+}
+.manana__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+.manana__tally {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.8rem;
+  background: oklch(0.993 0.003 85 / 0.92);
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.manana__empty {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.manana__toggle {
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.manana__list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 0.4rem);
+  padding: 0.8rem 1rem;
+  background: oklch(0.993 0.003 85);
+  border: 1px solid var(--ink);
+  border-radius: 0.85rem;
+  box-shadow: 0 18px 40px -22px oklch(0.2 0.01 60 / 0.45);
+}
+.manana__list ol {
+  display: grid;
+  gap: 0.45rem;
+}
+.manana__list li {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  animation: la81-card 0.45s var(--ease) both;
+}
+.manana__none {
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+/* Angosto: la página se desplaza y el botón de seguir queda siempre a mano. */
+@media (max-width: 54.99rem) {
+  /* El dibujo se queda con el alto que la tarjeta no usa. */
+  .room {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+  .room__stage {
+    flex: 1 0 var(--stage-h);
+    height: auto;
+  }
+  .room--perfil {
+    --stage-h: clamp(14rem, 36dvh, 26rem);
+  }
+  .sheet__nav,
+  .dock__nav {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin-inline: -1.1rem;
+    margin-bottom: -0.8rem;
+    padding: 0.6rem 1.1rem calc(0.7rem + env(safe-area-inset-bottom));
+    background: oklch(0.993 0.003 85);
+    border-top: 1px solid var(--hair);
+    border-radius: 0 0 1rem 1rem;
+  }
+}
+@media (max-width: 30rem) {
+  .manana__lbl {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .sheet__nav .btn,
+  .dock__nav .btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Pantalla ancha: el dibujo ocupa toda la ventana y la tarjeta flota encima */
+@media (min-width: 55rem) {
+  .room {
+    height: 100dvh;
+    min-height: 40rem;
+    overflow: hidden;
+  }
+  .room__stage {
+    position: absolute;
+    inset: 0;
+    height: auto;
+  }
+  .room__top {
+    top: 4rem;
+  }
+  .room__dock {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 1.25rem;
+    margin: 0;
+    padding: 0 var(--gutter);
+  }
+  .sheet {
+    padding: 1.35rem 1.5rem 1rem;
+  }
+  .fichas {
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .ficha {
+    min-height: 8rem;
+    padding-top: 0.9rem;
+  }
+  .ficha__ico {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+  .room--day .sheet {
+    max-width: 72rem;
+  }
+  .room--day .acts {
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  .room--day .act {
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 0.4rem;
+    min-height: 4.75rem;
+    padding: 0.8rem 1rem 0.9rem;
+  }
+  .room--day .dock__foot {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 2rem;
+  }
+  .room--day .dock__nav {
+    gap: 2rem;
+  }
+  .manana {
+    position: fixed;
+    left: auto;
+    bottom: auto;
+    right: var(--gutter);
+    top: 9.5rem;
+    width: 17rem;
+  }
+  .manana__head {
+    display: block;
+  }
+  .manana__tally {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.85rem;
+    font-size: 1.05rem;
+  }
+  .manana__tally > span:not(.manana__empty) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.3rem;
+    align-items: baseline;
+  }
+  .manana__lbl {
+    grid-column: 1 / -1;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .manana__empty {
+    grid-column: 1 / -1;
+    font-size: 0.875rem;
+  }
+  .room__stage::after {
+    height: 10rem;
+  }
+  .manana__list {
+    position: static;
+    margin-top: 0.5rem;
+    max-height: calc(100dvh - 9.5rem - 17rem);
+    overflow: auto;
+  }
+}
+.day__lead {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.day__lead path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.25;
+  stroke-dasharray: 1;
+  animation: la81-draw 0.45s cubic-bezier(0.65, 0, 0.35, 1) 0.75s both;
+}
+.day__lead circle {
+  fill: var(--ink);
+  animation: la81-fade 0.3s ease-out 0.7s both;
+}
+.day__says {
+  position: absolute;
+  transform: translateX(-50%);
+}
+.day__says .says {
+  padding: 1rem 1.25rem 1.15rem;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 0.85rem;
+  box-shadow: 5px 5px 0 oklch(0.2 0.01 60 / 0.1);
+  animation: la81-card 0.5s var(--ease) 0.95s both;
+}
+.day__says .says--voz {
+  border-radius: 1.1rem 1.1rem 1.1rem 0.2rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .day__h,
+  .says,
+  .sheet,
+  .fx__in,
+  .manana__list li,
+  .day__lead path,
+  .day__lead circle {
+    animation: none;
+  }
+  .track__sun,
+  .room__stage,
+  .ficha {
+    transition: none;
+  }
+}
+
 /* ── Metodología y matriz de controles ───────────────── */
 .metodo__open {
   padding-top: clamp(1.75rem, 5vw, 3.25rem);
