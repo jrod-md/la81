@@ -117,3 +117,42 @@ export interface Results {
   answered: number;
   visible: number;
 }
+
+/** Momento en que actúa el control frente al riesgo. */
+export type ControlTipo = 'preventivo' | 'detectivo' | 'correctivo';
+
+/**
+ * Qué tan directa es la exigencia en la norma:
+ * expresa = la norma lo pide en esos términos; derivada = medida concreta para cumplir un deber general
+ * (seguridad, responsabilidad); voluntaria = la norma la sugiere sin obligar.
+ */
+export type Exigencia = 'expresa' | 'derivada' | 'voluntaria';
+
+export type Marco = 'iso27001' | 'iso27701' | 'nist';
+
+/** Control de la matriz. Cada pregunta del cuestionario evalúa exactamente un control. */
+export interface Control {
+  /** Identificador estable, p. ej. "INV-01". */
+  id: string;
+  /** Id de la pregunta que lo evalúa. */
+  question: string;
+  /** Objetivo de control. */
+  objetivo: string;
+  /** Cómo lo comprobaría un tercero. */
+  prueba: string;
+  /** Evidencia esperada. */
+  evidencia: string[];
+  tipo: ControlTipo;
+  exigencia: Exigencia;
+  /** Referencias orientativas a otros marcos, por código. */
+  iso27001: string[];
+  iso27701: string[];
+  nist: string[];
+}
+
+/** Fila de la matriz: el control unido a su pregunta y área. */
+export interface MatrixRow {
+  control: Control;
+  question: Question;
+  area: Area;
+}

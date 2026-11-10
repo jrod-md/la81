@@ -48,7 +48,7 @@ export function RefList({ refs }: { refs: LegalRef[] }) {
   );
 }
 
-export function Disclaimer() {
+export function Disclaimer({ onMetodo }: { onMetodo?: () => void }) {
   return (
     <footer className="site-foot">
       <p>
@@ -56,6 +56,13 @@ export function Disclaimer() {
         asesoría legal ni una auditoría, y no certifica cumplimiento.
       </p>
       <p>Tus respuestas se quedan en este dispositivo. No se envían a ningún servidor.</p>
+      {onMetodo && (
+        <p>
+          <button type="button" className="link" onClick={onMetodo}>
+            Metodología y matriz de controles
+          </button>
+        </p>
+      )}
     </footer>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Drawing } from './drawing/Drawing';
 import { buildScene, featuresFromProfile } from './drawing/scene';
 import { Inicio } from './ui/Inicio';
+import { Metodologia } from './ui/Metodologia';
 import { Disclaimer, useResults } from './ui/parts';
 import { Perfil } from './ui/Perfil';
 import { Recorrido } from './ui/Recorrido';
@@ -52,9 +53,10 @@ export function App() {
           />
         )}
         {screen.name === 'resultados' && <Resultados app={app} />}
+        {screen.name === 'metodologia' && <Metodologia app={app} />}
       </main>
 
-      <Disclaimer />
+      <Disclaimer onMetodo={screen.name === 'metodologia' ? undefined : () => app.go({ name: 'metodologia' })} />
     </div>
   );
 }
