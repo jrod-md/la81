@@ -4,9 +4,13 @@
 // Todo el SVG se genera aquí a partir de números y textos fijos: no contiene datos del usuario.
 import type { AreaId, Profile } from '../engine/types';
 import { campo } from './campo';
+import { casa } from './casa';
+import { escuela } from './escuela';
 import { hospedaje } from './hospedaje';
 import { obra } from './obra';
+import { organizacion } from './organizacion';
 import { taller } from './taller';
+import { transporte } from './transporte';
 import { abanico, atiende, cliente, planta, reponedor, sentado, type Dress } from './figures';
 import { f, makeInk, type Rect, type V3 } from './ink';
 
@@ -19,11 +23,11 @@ const TIPOS: Tipo[] = [
   'campo', 'taller', 'obra', 'escuela', 'hospedaje', 'transporte', 'casa', 'organizacion',
 ];
 
-/** Lugar que se dibuja para cada tipo. Los que aún no tienen lugar propio usan el local más parecido, con su letrero. */
-type Lugar = 'farmacia' | 'fonda' | 'salon' | 'tienda' | 'oficina' | 'campo' | 'taller' | 'obra' | 'hospedaje';
+/** Lugar que se dibuja para cada tipo. */
+type Lugar = 'farmacia' | 'fonda' | 'salon' | 'tienda' | 'oficina' | 'campo' | 'taller' | 'obra' | 'hospedaje' | 'escuela' | 'transporte' | 'casa' | 'organizacion';
 const LUGAR: Record<Tipo, Lugar> = {
   farmacia: 'farmacia', fonda: 'fonda', salon: 'salon', tienda: 'tienda', oficina: 'oficina', campo: 'campo',
-  taller: 'taller', obra: 'obra', escuela: 'oficina', hospedaje: 'hospedaje', transporte: 'oficina', casa: 'oficina', organizacion: 'oficina',
+  taller: 'taller', obra: 'obra', escuela: 'escuela', hospedaje: 'hospedaje', transporte: 'transporte', casa: 'casa', organizacion: 'organizacion',
 };
 
 export interface SceneFeatures {
@@ -127,7 +131,7 @@ const SIGN: Record<Tipo, string> = {
 const DRESS: Record<Exclude<Lugar, Propio>, Dress> = { farmacia: 'bata', fonda: 'delantal', salon: 'delantal', tienda: 'polo', oficina: 'camisa' };
 
 /** Lugares que se dibujan en su propio archivo, sin el local. */
-const PROPIOS = { campo, taller, obra, hospedaje } as const;
+const PROPIOS = { campo, taller, obra, hospedaje, escuela, transporte, casa, organizacion } as const;
 type Propio = keyof typeof PROPIOS;
 const esPropio = (l: Lugar): l is Propio => l in PROPIOS;
 

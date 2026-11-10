@@ -290,6 +290,10 @@ describe('tipos de negocio', () => {
     ['taller', ['carro', 'elevador-postes', 'banco-trabajo', 'llantas', 'mostrador']],
     ['obra', ['losa', 'columnas', 'andamio', 'mezcladora', 'contenedor']],
     ['hospedaje', ['cama-a', 'cama-b', 'mostrador', 'casillero-llaves', 'sofa-base']],
+    ['escuela', ['pupitre-0-0', 'estante', 'tabique-a', 'mostrador', 'bandera']],
+    ['transporte', ['camion-cajon', 'rack-0', 'paleta', 'oficina-vidrio', 'mostrador']],
+    ['casa', ['meseta', 'nevera', 'envios-0', 'sofa', 'reja', 'mostrador']],
+    ['organizacion', ['estrado', 'podio', 'silla-0-0', 'ventilador-0', 'cafe', 'mostrador']],
   ] as [Tipo, string[]][])('%s es un lugar propio con sus ocho puntos', (tipo, propias) => {
     for (const base of [ALL, NONE]) {
       const scene = buildScene({ ...base, tipo });
@@ -299,16 +303,6 @@ describe('tipos de negocio', () => {
       for (const item of scene.items) expect(item.html).not.toMatch(/NaN|undefined|Infinity/);
       for (const id of [...propias, 'marco-a', 'aviso', 'cliente', 'persona-mostrador', 'sombras']) expect(list).toContain(id);
       expect(scene.viewBox).toEqual(sceneFrame());
-    }
-  });
-
-  it('los tipos sin lugar propio usan un local con su letrero', () => {
-    const tipos: Tipo[] = ['escuela', 'transporte', 'casa', 'organizacion'];
-    for (const tipo of tipos) {
-      expect(featuresFromProfile({ tipo: [tipo] }).tipo).toBe(tipo);
-      const scene = buildScene({ ...ALL, tipo });
-      expect(scene.callouts).toHaveLength(8);
-      expect(ids(scene)).toContain('mostrador');
     }
   });
 
