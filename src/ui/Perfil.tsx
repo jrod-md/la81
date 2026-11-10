@@ -79,7 +79,7 @@ export function Perfil({ app, step, scene }: { app: AppState; step: number; scen
               </ScreenTitle>
             </legend>
             <p className="sheet__hint">{pq.multi ? 'Marca todas las que apliquen.' : (pq.help ?? 'Elige una.')}</p>
-            <div className="fichas" style={{ '--n': pq.options.length } as CSSProperties}>
+            <div className={`fichas${pq.options.length > 7 ? ' fichas--muchas' : ''}`} style={{ '--n': Math.min(pq.options.length, 7) } as CSSProperties}>
               {pq.options.map((o) => {
                 const checked = selected.includes(o.id);
                 const [t, sub] = fichaTexto(pq.id, o.id, o.label);

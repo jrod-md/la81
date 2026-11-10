@@ -2021,6 +2021,31 @@ ul {
     width: 3.25rem;
     height: 3.25rem;
   }
+  /* Con muchas fichas, la presentación va a la derecha del título para dejarle alto al dibujo. */
+  .sheet {
+    position: relative;
+  }
+  .sheet__intro {
+    position: absolute;
+    top: 1.4rem;
+    right: 1.5rem;
+    width: min(27rem, 45%);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    text-align: right;
+  }
+  .fichas--muchas {
+    gap: 0.5rem;
+  }
+  .fichas--muchas .ficha {
+    min-height: 6rem;
+    padding-top: 0.6rem;
+  }
+  .fichas--muchas .ficha__ico {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
   .room--day .sheet {
     max-width: 72rem;
   }
