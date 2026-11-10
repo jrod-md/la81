@@ -266,6 +266,46 @@ describe('tipos de negocio', () => {
     expect(oficina).not.toContain('nevera');
   });
 
+  it('la finca es un lugar propio, sin local, con sus ocho puntos', () => {
+    for (const base of [ALL, NONE]) {
+      const scene = buildScene({ ...base, tipo: 'campo' });
+      const list = ids(scene);
+      expect(new Set(list).size).toBe(list.length);
+      expect(scene.callouts).toHaveLength(8);
+      for (const item of scene.items) {
+        expect(item.html).not.toContain('NaN');
+        expect(item.html).not.toContain('undefined');
+        expect(item.html).not.toContain('Infinity');
+      }
+      for (const id of ['galera-techo', 'surco-0', 'tractor', 'puesto', 'arbol', 'marco-a', 'aviso', 'cliente', 'sombras']) expect(list).toContain(id);
+      for (const id of ['mostrador', 'cortina', 'muro-izq', 'piso-trastienda']) expect(list).not.toContain(id);
+      expect(scene.viewBox).toEqual(sceneFrame());
+    }
+    const places = buildScene({ ...NONE, tipo: 'campo' }).callouts.map((c) => c.place);
+    expect(places).toContain('El portón');
+    expect(places).toContain('El comprador');
+  });
+
+  it.each([
+    ['taller', ['carro', 'elevador-postes', 'banco-trabajo', 'llantas', 'mostrador']],
+    ['obra', ['losa', 'columnas', 'andamio', 'mezcladora', 'contenedor']],
+    ['hospedaje', ['cama-a', 'cama-b', 'mostrador', 'casillero-llaves', 'sofa-base']],
+    ['escuela', ['pupitre-0-0', 'estante', 'tabique-a', 'mostrador', 'bandera']],
+    ['transporte', ['camion-cajon', 'rack-0', 'paleta', 'oficina-vidrio', 'mostrador']],
+    ['casa', ['meseta', 'nevera', 'envios-0', 'sofa', 'reja', 'mostrador']],
+    ['organizacion', ['estrado', 'podio', 'silla-0-0', 'ventilador-0', 'cafe', 'mostrador']],
+  ] as [Tipo, string[]][])('%s es un lugar propio con sus ocho puntos', (tipo, propias) => {
+    for (const base of [ALL, NONE]) {
+      const scene = buildScene({ ...base, tipo });
+      const list = ids(scene);
+      expect(new Set(list).size).toBe(list.length);
+      expect(scene.callouts).toHaveLength(8);
+      for (const item of scene.items) expect(item.html).not.toMatch(/NaN|undefined|Infinity/);
+      for (const id of [...propias, 'marco-a', 'aviso', 'cliente', 'persona-mostrador', 'sombras']) expect(list).toContain(id);
+      expect(scene.viewBox).toEqual(sceneFrame());
+    }
+  });
+
   it('sin tipo se dibuja la tienda', () => {
     expect(ids(buildScene(ALL))).toEqual(ids(buildScene({ ...ALL, tipo: 'tienda' })));
   });

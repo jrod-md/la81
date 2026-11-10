@@ -3,12 +3,32 @@
 // las anclas de los 8 puntos y el nombre del lugar de cada área.
 // Todo el SVG se genera aquí a partir de números y textos fijos: no contiene datos del usuario.
 import type { AreaId, Profile } from '../engine/types';
+import { campo } from './campo';
+import { casa } from './casa';
+import { escuela } from './escuela';
+import { hospedaje } from './hospedaje';
+import { obra } from './obra';
+import { organizacion } from './organizacion';
+import { taller } from './taller';
+import { transporte } from './transporte';
 import { abanico, atiende, cliente, planta, reponedor, sentado, type Dress } from './figures';
 import { f, makeInk, type Rect, type V3 } from './ink';
 
 /** Tipo de local que se dibuja. */
-export type Tipo = 'farmacia' | 'fonda' | 'salon' | 'tienda' | 'oficina';
-const TIPOS: Tipo[] = ['farmacia', 'fonda', 'salon', 'tienda', 'oficina'];
+export type Tipo =
+  | 'farmacia' | 'fonda' | 'salon' | 'tienda' | 'oficina'
+  | 'campo' | 'taller' | 'obra' | 'escuela' | 'hospedaje' | 'transporte' | 'casa' | 'organizacion';
+const TIPOS: Tipo[] = [
+  'farmacia', 'fonda', 'salon', 'tienda', 'oficina',
+  'campo', 'taller', 'obra', 'escuela', 'hospedaje', 'transporte', 'casa', 'organizacion',
+];
+
+/** Lugar que se dibuja para cada tipo. */
+type Lugar = 'farmacia' | 'fonda' | 'salon' | 'tienda' | 'oficina' | 'campo' | 'taller' | 'obra' | 'hospedaje' | 'escuela' | 'transporte' | 'casa' | 'organizacion';
+const LUGAR: Record<Tipo, Lugar> = {
+  farmacia: 'farmacia', fonda: 'fonda', salon: 'salon', tienda: 'tienda', oficina: 'oficina', campo: 'campo',
+  taller: 'taller', obra: 'obra', escuela: 'escuela', hospedaje: 'hospedaje', transporte: 'transporte', casa: 'casa', organizacion: 'organizacion',
+};
 
 export interface SceneFeatures {
   /** Sin tipo se dibuja una tienda. */
@@ -86,7 +106,7 @@ export function featuresFromProfile(profile: Profile): SceneFeatures {
 // Lámina de corte arquitectónico: tinta sobre papel, trama vertical en las caras
 // en sombra, muros cortados en negro (poché) y sombras rayadas en el piso.
 
-type AnchorKey =
+export type AnchorKey =
   | 'archivero' | 'papeles' | 'libreta' | 'celular' | 'caja' | 'aviso' | 'cliente' | 'monitor'
   | 'nube' | 'contador' | 'ti' | 'marketing' | 'delivery' | 'router' | 'entrada' | 'equipo';
 
@@ -104,8 +124,29 @@ const PLACE: Record<AnchorKey, string> = {
   delivery: 'El delivery', router: 'El internet del local', entrada: 'La entrada', equipo: 'Quien atiende',
 };
 
-const SIGN: Record<Tipo, string> = { farmacia: 'FARMACIA', fonda: 'FONDA', salon: 'SALÓN', tienda: 'MINISÚPER', oficina: 'OFICINA' };
-const DRESS: Record<Tipo, Dress> = { farmacia: 'bata', fonda: 'delantal', salon: 'delantal', tienda: 'polo', oficina: 'camisa' };
+const SIGN: Record<Tipo, string> = {
+  farmacia: 'FARMACIA', fonda: 'FONDA', salon: 'SALÓN', tienda: 'MINISÚPER', oficina: 'OFICINA', campo: 'FINCA',
+  taller: 'TALLER', obra: 'OBRAS', escuela: 'ESCUELA', hospedaje: 'HOSTAL', transporte: 'FLETES', casa: 'EN CASA', organizacion: 'SEDE',
+};
+const DRESS: Record<Exclude<Lugar, Propio>, Dress> = { farmacia: 'bata', fonda: 'delantal', salon: 'delantal', tienda: 'polo', oficina: 'camisa' };
+
+/** Lugares que se dibujan en su propio archivo, sin el local. */
+const PROPIOS = { campo, taller, obra, hospedaje, escuela, transporte, casa, organizacion } as const;
+type Propio = keyof typeof PROPIOS;
+const esPropio = (l: Lugar): l is Propio => l in PROPIOS;
+
+/** Lo que recibe cada lugar para dibujarse: la tinta, dónde dejar piezas, anclas y sombras. */
+export type Kit = ReturnType<typeof makeInk> & {
+  ft: SceneFeatures;
+  add: (id: string, html: string, kind?: SceneItem['kind']) => void;
+  /** Anclas de los puntos numerados: cada lugar deja las suyas. */
+  A: Partial<Record<AnchorKey, Point>>;
+  range: (a: number, b: number, step: number) => number[];
+  /** Suma una sombra al piso. */
+  shade: (html: string) => void;
+  /** Coloca aquí la capa de sombras (debajo de todo lo que venga después). */
+  placeShadows: () => void;
+};
 
 const BACK: Rect = [0, 0, 7, 3];
 const FRONT: Rect = [0, 3.15, 7, 11];
@@ -122,6 +163,15 @@ function compose(ft: SceneFeatures): Scene {
     return out;
   };
 
+  const tipo: Tipo = ft.tipo ?? 'tienda';
+  const lugar = LUGAR[tipo];
+  let sh = '';
+  const shadowItem: SceneItem = { id: 'sombras', kind: 'fade', html: '' };
+  /** Nombres de lugar propios del sitio (si no, los del local). */
+  let places: Partial<Record<AnchorKey, string>> = {};
+
+  // El local de siempre: trastienda, mostrador y sala. Cambia por dentro según el tipo.
+  const local = (base: Exclude<Lugar, Propio>) => {
   // ── Terreno, acera y calle
   add('lote', loop([[-0.7, -0.7, 0], [7.9, -0.7, 0], [7.9, 11.2, 0], [-0.7, 11.2, 0]], 'dash', 0), 'fade');
   add(
@@ -156,7 +206,6 @@ function compose(ft: SceneFeatures): Scene {
   add('tapete', fill(mat, 'p3') + lines(range(3.05, 4.45, 0.1).map((x) => [[x, 10.24, 0], [x, 10.82, 0]] as [V3, V3]), 'e4', 0) + loop(mat, 'e3', 0), 'fade');
 
   // Sombras de los muebles en el piso (van debajo de todo)
-  let sh = '';
   if (ft.archivero) sh += shadow(0.12, 0.12, 0.78, 0.72, 1.35, BACK);
   sh += shadow(4.9, 0.02, 6.85, 0.6, 2.0, BACK);
   sh += shadow(2.1, 0.1, 3.9, 0.82, 0.77, BACK);
@@ -164,7 +213,6 @@ function compose(ft: SceneFeatures): Scene {
   sh += shadow(2.82, 1.08, 3.2, 1.5, ft.equipo >= 2 ? 1.3 : 0.95, BACK);
   sh += shadow(1.55, 5.55, 6.45, 6.25, 1.05, FRONT);
   // Las sombras de la sala se suman abajo, según el tipo; la pieza va aquí para quedar debajo de todo.
-  const shadowItem: SceneItem = { id: 'sombras', kind: 'fade', html: '' };
   items.push(shadowItem);
 
   // ── Muro izquierdo: ventana con rejas, letrero, horario
@@ -175,11 +223,11 @@ function compose(ft: SceneFeatures): Scene {
   lw += lines([[[0, 1.0, 1.55], [0, 2.4, 1.55]]], 'e2', 0);
   lw += box(0, 0.94, 0.93, 0.09, 2.46, 1.0, { w: 3, x: 'p' });
   lw += plane([[0, 5.5, 2.36], [0, 3.45, 2.36], [0, 3.45, 2.84], [0, 5.5, 2.84]], 'p', 'e2');
-  if ((ft.tipo ?? 'tienda') === 'farmacia') {
+  if (base === 'farmacia') {
     lw += fill([[0, 5.35, 2.46], [0, 5.27, 2.46], [0, 5.27, 2.74], [0, 5.35, 2.74]], 'k');
     lw += fill([[0, 5.45, 2.56], [0, 5.17, 2.56], [0, 5.17, 2.64], [0, 5.45, 2.64]], 'k');
     lw += label(SIGN.farmacia, 0, 5.08, 2.49, 'yz', 'sign', 'start');
-  } else lw += label(SIGN[ft.tipo ?? 'tienda'], 0, 4.475, 2.49, 'yz', 'sign', 'middle');
+  } else lw += label(ft.tipo ? SIGN[tipo] : 'TU NEGOCIO', 0, 4.475, 2.49, 'yz', 'sign', 'middle');
   add('muro-izq', box(-0.22, -0.22, 0, 0, 11, 3, { t: 'k', x: 'p2', y: 'p', w: 1, inner: lw }), 'rise');
 
   // ── Muro del fondo: baño, reloj, calendario
@@ -432,12 +480,11 @@ function compose(ft: SceneFeatures): Scene {
     sh += shadow(0.06, 3.45, 0.72, 5.5, 0.86, FRONT);
   };
 
-  const tipo: Tipo = ft.tipo ?? 'tienda';
-  if (tipo === 'fonda') cocina();
-  else shelves(tipo === 'farmacia' ? 0.38 : tipo === 'salon' ? 0.75 : 0.55, tipo === 'oficina');
+  if (base === 'fonda') cocina();
+  else shelves(base === 'farmacia' ? 0.38 : base === 'salon' ? 0.75 : 0.55, base === 'oficina');
 
   // Quien atiende
-  add('persona-mostrador', at(3.9, 4.65, 0, atiende(DRESS[tipo]), [-14, -75, 14, 0]));
+  add('persona-mostrador', at(3.9, 4.65, 0, atiende(DRESS[base]), [-14, -75, 14, 0]));
   A.equipo = P(3.9, 4.65, 1.62);
 
   // ── Mostrador
@@ -659,13 +706,13 @@ function compose(ft: SceneFeatures): Scene {
       'fade',
     );
 
-  if (tipo === 'farmacia') {
+  if (base === 'farmacia') {
     horario();
     nevera('nevera', 6.9);
     gondola('gondola', 0.9, 8.4, 10.4, 'B/. 2.50');
     if (ft.equipo >= 3) add('persona-gondola', at(2.2, 9.3, 0, reponedor(), [-25, -75, 13, 0]));
     abanicoPlanta(true, [6.4, 10.4]);
-  } else if (tipo === 'tienda') {
+  } else if (base === 'tienda') {
     horario();
     nevera('nevera', 6.9);
     nevera('nevera-2', 7.95);
@@ -673,7 +720,7 @@ function compose(ft: SceneFeatures): Scene {
     if (ft.equipo >= 3) add('persona-gondola', at(2.75, 8.3, 0, reponedor(), [-25, -75, 13, 0]));
     gondola('gondola-2', 5.0, 7.9, 9.9, 'B/. 0.75');
     abanicoPlanta(false, [6.4, 10.4]);
-  } else if (tipo === 'fonda') {
+  } else if (base === 'fonda') {
     // Pizarra del menú, refresquera, taburetes en la barra y mesas
     add(
       'menu',
@@ -693,7 +740,7 @@ function compose(ft: SceneFeatures): Scene {
     if (ft.equipo >= 3) add('persona-sala', at(3.55, 8.05, 0, atiende('delantal'), [-14, -75, 14, 0]));
     mesa('mesa-2', 4.65, 8.6, false);
     abanicoPlanta(true, [6.4, 10.4]);
-  } else if (tipo === 'salon') {
+  } else if (base === 'salon') {
     estacion(0, 6.9, true);
     if (ft.equipo >= 3) add('persona-sala', at(1.95, 7.45, 0, reponedor('tijera'), [-25, -75, 13, 0]));
     estacion(1, 8.4, false);
@@ -759,6 +806,23 @@ function compose(ft: SceneFeatures): Scene {
     'rise',
   );
   A.entrada = P(3.7, 11.12, 2.88);
+  };
+
+  if (esPropio(lugar)) {
+    places = PROPIOS[lugar]({
+      ...ink,
+      ft,
+      add,
+      A,
+      range,
+      shade: (html) => {
+        sh += html;
+      },
+      placeShadows: () => {
+        items.push(shadowItem);
+      },
+    });
+  } else local(lugar);
 
   // Delivery en la acera
   if (ft.delivery) {
@@ -868,7 +932,7 @@ function compose(ft: SceneFeatures): Scene {
     const bubble = { x: anchor.x + off.x, y: anchor.y + off.y };
     grow(bubble.x - 22, bubble.y - 22);
     grow(bubble.x + 22, bubble.y + 22);
-    const place = key === 'equipo' && ft.equipo >= 2 ? 'Tu equipo' : PLACE[key];
+    const place = key === 'equipo' && ft.equipo >= 2 ? 'Tu equipo' : (places[key] ?? PLACE[key]);
     return { area, n: i + 1, anchor, bubble, place };
   });
 
