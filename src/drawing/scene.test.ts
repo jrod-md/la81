@@ -286,8 +286,24 @@ describe('tipos de negocio', () => {
     expect(places).toContain('El comprador');
   });
 
+  it.each([
+    ['taller', ['carro', 'elevador-postes', 'banco-trabajo', 'llantas', 'mostrador']],
+    ['obra', ['losa', 'columnas', 'andamio', 'mezcladora', 'contenedor']],
+    ['hospedaje', ['cama-a', 'cama-b', 'mostrador', 'casillero-llaves', 'sofa-base']],
+  ] as [Tipo, string[]][])('%s es un lugar propio con sus ocho puntos', (tipo, propias) => {
+    for (const base of [ALL, NONE]) {
+      const scene = buildScene({ ...base, tipo });
+      const list = ids(scene);
+      expect(new Set(list).size).toBe(list.length);
+      expect(scene.callouts).toHaveLength(8);
+      for (const item of scene.items) expect(item.html).not.toMatch(/NaN|undefined|Infinity/);
+      for (const id of [...propias, 'marco-a', 'aviso', 'cliente', 'persona-mostrador', 'sombras']) expect(list).toContain(id);
+      expect(scene.viewBox).toEqual(sceneFrame());
+    }
+  });
+
   it('los tipos sin lugar propio usan un local con su letrero', () => {
-    const tipos: Tipo[] = ['taller', 'obra', 'escuela', 'hospedaje', 'transporte', 'casa', 'organizacion'];
+    const tipos: Tipo[] = ['escuela', 'transporte', 'casa', 'organizacion'];
     for (const tipo of tipos) {
       expect(featuresFromProfile({ tipo: [tipo] }).tipo).toBe(tipo);
       const scene = buildScene({ ...ALL, tipo });

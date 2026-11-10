@@ -4,6 +4,9 @@
 // Todo el SVG se genera aquí a partir de números y textos fijos: no contiene datos del usuario.
 import type { AreaId, Profile } from '../engine/types';
 import { campo } from './campo';
+import { hospedaje } from './hospedaje';
+import { obra } from './obra';
+import { taller } from './taller';
 import { abanico, atiende, cliente, planta, reponedor, sentado, type Dress } from './figures';
 import { f, makeInk, type Rect, type V3 } from './ink';
 
@@ -17,10 +20,10 @@ const TIPOS: Tipo[] = [
 ];
 
 /** Lugar que se dibuja para cada tipo. Los que aún no tienen lugar propio usan el local más parecido, con su letrero. */
-type Lugar = 'farmacia' | 'fonda' | 'salon' | 'tienda' | 'oficina' | 'campo';
+type Lugar = 'farmacia' | 'fonda' | 'salon' | 'tienda' | 'oficina' | 'campo' | 'taller' | 'obra' | 'hospedaje';
 const LUGAR: Record<Tipo, Lugar> = {
   farmacia: 'farmacia', fonda: 'fonda', salon: 'salon', tienda: 'tienda', oficina: 'oficina', campo: 'campo',
-  taller: 'tienda', obra: 'oficina', escuela: 'oficina', hospedaje: 'oficina', transporte: 'oficina', casa: 'oficina', organizacion: 'oficina',
+  taller: 'taller', obra: 'obra', escuela: 'oficina', hospedaje: 'hospedaje', transporte: 'oficina', casa: 'oficina', organizacion: 'oficina',
 };
 
 export interface SceneFeatures {
@@ -121,7 +124,12 @@ const SIGN: Record<Tipo, string> = {
   farmacia: 'FARMACIA', fonda: 'FONDA', salon: 'SALÓN', tienda: 'MINISÚPER', oficina: 'OFICINA', campo: 'FINCA',
   taller: 'TALLER', obra: 'OBRAS', escuela: 'ESCUELA', hospedaje: 'HOSTAL', transporte: 'FLETES', casa: 'EN CASA', organizacion: 'SEDE',
 };
-const DRESS: Record<Exclude<Lugar, 'campo'>, Dress> = { farmacia: 'bata', fonda: 'delantal', salon: 'delantal', tienda: 'polo', oficina: 'camisa' };
+const DRESS: Record<Exclude<Lugar, Propio>, Dress> = { farmacia: 'bata', fonda: 'delantal', salon: 'delantal', tienda: 'polo', oficina: 'camisa' };
+
+/** Lugares que se dibujan en su propio archivo, sin el local. */
+const PROPIOS = { campo, taller, obra, hospedaje } as const;
+type Propio = keyof typeof PROPIOS;
+const esPropio = (l: Lugar): l is Propio => l in PROPIOS;
 
 /** Lo que recibe cada lugar para dibujarse: la tinta, dónde dejar piezas, anclas y sombras. */
 export type Kit = ReturnType<typeof makeInk> & {
@@ -159,7 +167,7 @@ function compose(ft: SceneFeatures): Scene {
   let places: Partial<Record<AnchorKey, string>> = {};
 
   // El local de siempre: trastienda, mostrador y sala. Cambia por dentro según el tipo.
-  const local = (base: Exclude<Lugar, 'campo'>) => {
+  const local = (base: Exclude<Lugar, Propio>) => {
   // ── Terreno, acera y calle
   add('lote', loop([[-0.7, -0.7, 0], [7.9, -0.7, 0], [7.9, 11.2, 0], [-0.7, 11.2, 0]], 'dash', 0), 'fade');
   add(
@@ -796,8 +804,8 @@ function compose(ft: SceneFeatures): Scene {
   A.entrada = P(3.7, 11.12, 2.88);
   };
 
-  if (lugar === 'campo') {
-    places = campo({
+  if (esPropio(lugar)) {
+    places = PROPIOS[lugar]({
       ...ink,
       ft,
       add,
