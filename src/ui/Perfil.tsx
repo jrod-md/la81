@@ -1,11 +1,15 @@
-import type { FormEvent } from 'react';
+import type { CSSProperties, FormEvent } from 'react';
 import { profileQuestions } from '../content/profile';
+import { Drawing } from '../drawing/Drawing';
+import type { Scene } from '../drawing/scene';
 import type { AppState } from './useAppState';
+import { FichaDibujo, fichaTexto } from './Fichas';
 import { ScreenTitle } from './parts';
+import { fitView, useRoom } from './Room';
 
-const LETTERS = 'abcdefghij';
-
-export function Perfil({ app, step }: { app: AppState; step: number }) {
+/** Las preguntas del perfil: el local se arma detrás mientras se responde. */
+export function Perfil({ app, step, scene }: { app: AppState; step: number; scene: Scene }) {
+  const { stageRef, topRef, dockRef, geo } = useRoom();
   const total = profileQuestions.length;
   const safeStep = Math.min(Math.max(0, step), total - 1);
   const pq = profileQuestions[safeStep];
@@ -14,6 +18,7 @@ export function Perfil({ app, step }: { app: AppState; step: number }) {
   const selected = app.profile[pq.id] ?? [];
   const canContinue = pq.multi || selected.length > 0;
   const isLast = safeStep === total - 1;
+  const first = safeStep === 0;
 
   const toggle = (optionId: string, exclusive: boolean) => {
     if (!pq.multi) {
@@ -39,66 +44,78 @@ export function Perfil({ app, step }: { app: AppState; step: number }) {
     else app.go({ name: 'perfil', step: safeStep + 1 });
   };
 
-  const back = () => (safeStep === 0 ? app.go({ name: 'inicio' }) : app.go({ name: 'perfil', step: safeStep - 1 }));
+  const back = first ? (app.started ? () => app.go({ name: 'inicio' }) : null) : () => app.go({ name: 'perfil', step: safeStep - 1 });
+  const nextLabel = isLast ? 'Empezar el día' : pq.multi && selected.length === 0 ? 'Ninguna, seguir' : 'Seguir';
 
   return (
-    <form className="ask" onSubmit={onSubmit}>
-      <div className="ask__meta">
-        <span>Tu negocio</span>
-        <span>
-          {safeStep + 1} de {total}
-        </span>
-      </div>
-      <div className="ticks" aria-hidden="true">
-        {profileQuestions.map((q, i) => (
-          <i key={q.id} className={i < safeStep ? 'on' : i === safeStep ? 'now' : undefined} />
-        ))}
+    <section className="room room--perfil" aria-label="Tu negocio">
+      <div className="room__stage" ref={stageRef}>
+        {geo && <Drawing scene={scene} statuses={{}} view={fitView(scene.viewBox, geo)} bare label="Dibujo de tu negocio, se arma con tus respuestas" />}
       </div>
 
-      <fieldset className="ask__set">
-        <legend>
-          <p className="ask__num" aria-hidden="true">
-            {String(safeStep + 1).padStart(2, '0')}
-          </p>
-          <ScreenTitle focusKey={`perfil-${pq.id}`} className="ask__q">
-            {pq.prompt}
-          </ScreenTitle>
-        </legend>
-        <p className="ask__hint">
-          {pq.help ? `${pq.help} ` : ''}
-          {pq.multi ? 'Marca todas las que apliquen.' : 'Elige una.'}
+      <div className="room__top" ref={topRef}>
+        <p className="room__step">
+          Tu negocio <b>{safeStep + 1}</b> de {total}
         </p>
-        <div className="rows">
-          {pq.options.map((o, i) => {
-            const checked = selected.includes(o.id);
-            return (
-              <label key={o.id} className={`row${checked ? ' is-on' : ''}`}>
-                <input
-                  type={pq.multi ? 'checkbox' : 'radio'}
-                  name={pq.id}
-                  value={o.id}
-                  checked={checked}
-                  onChange={() => toggle(o.id, o.exclusive === true)}
-                />
-                <span className="row__k" aria-hidden="true">
-                  {LETTERS[i]}.
-                </span>
-                <span className="row__t">{o.label}</span>
-                <span className={`row__box row__box--${pq.multi ? 'check' : 'radio'}`} aria-hidden="true" />
-              </label>
-            );
-          })}
+        <div className="ticks" aria-hidden="true">
+          {profileQuestions.map((q, i) => (
+            <i key={q.id} className={i < safeStep ? 'on' : i === safeStep ? 'now' : undefined} />
+          ))}
         </div>
-      </fieldset>
-
-      <div className="ask__nav">
-        <button type="button" className="link" onClick={back}>
-          ← Atrás
-        </button>
-        <button type="submit" className="btn" disabled={!canContinue}>
-          {isLast ? 'Empezar el recorrido' : 'Continuar'} <i aria-hidden="true">→</i>
-        </button>
       </div>
-    </form>
+
+      <div className="room__dock" ref={dockRef}>
+        <form className="sheet" onSubmit={onSubmit} key={pq.id}>
+          {first && (
+            <p className="sheet__intro">
+              Revisa en cinco minutos cómo cuidas los datos de las personas en tu negocio, según la Ley 81 de Panamá. Tus respuestas
+              no salen de este dispositivo.
+            </p>
+          )}
+          <fieldset className="sheet__set">
+            <legend>
+              <ScreenTitle focusKey={`perfil-${pq.id}`} className="sheet__q">
+                {pq.prompt}
+              </ScreenTitle>
+            </legend>
+            <p className="sheet__hint">{pq.multi ? 'Marca todas las que apliquen.' : (pq.help ?? 'Elige una.')}</p>
+            <div className="fichas" style={{ '--n': pq.options.length } as CSSProperties}>
+              {pq.options.map((o) => {
+                const checked = selected.includes(o.id);
+                const [t, sub] = fichaTexto(pq.id, o.id, o.label);
+                return (
+                  <label key={o.id} className={`ficha${checked ? ' is-on' : ''}`} title={o.label}>
+                    <input
+                      type={pq.multi ? 'checkbox' : 'radio'}
+                      name={pq.id}
+                      value={o.id}
+                      checked={checked}
+                      onChange={() => toggle(o.id, o.exclusive === true)}
+                    />
+                    <FichaDibujo pregunta={pq.id} opcion={o.id} />
+                    <span className="ficha__t">{t}</span>
+                    {sub && <span className="ficha__s">{sub}</span>}
+                    <span className={`ficha__mark ficha__mark--${pq.multi ? 'check' : 'radio'}`} aria-hidden="true" />
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <div className="sheet__nav">
+            {back ? (
+              <button type="button" className="link" onClick={back}>
+                ← Atrás
+              </button>
+            ) : (
+              <span className="micro">Gratis · Sin registro</span>
+            )}
+            <button type="submit" className="btn" disabled={!canContinue}>
+              {nextLabel} <i aria-hidden="true">→</i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
   );
 }

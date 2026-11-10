@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { Drawing } from './drawing/Drawing';
 import { buildScene, featuresFromProfile } from './drawing/scene';
 import { Inicio } from './ui/Inicio';
 import { Metodologia } from './ui/Metodologia';
@@ -11,38 +10,30 @@ import { useAppState } from './ui/useAppState';
 
 export function App() {
   const app = useAppState();
-  const { screen } = app;
+  // Sin nada empezado no hay "regreso": la pantalla de inicio es la primera pregunta.
+  const screen = app.screen.name === 'inicio' && !app.started ? app.home : app.screen;
   const scene = useMemo(() => buildScene(featuresFromProfile(app.profile)), [app.profile]);
   const { statuses } = useResults(app.profile, app.answers);
 
   const inTour = screen.name === 'cuestionario' || screen.name === 'profundizar';
+  // Pantallas "cuarto": el dibujo ocupa la ventana y la pregunta flota abajo.
+  const full = inTour || screen.name === 'perfil' || screen.name === 'inicio';
   return (
-    <div className="shell">
+    <div className={`shell${full ? ' shell--room' : ''}`}>
       <header className="mast no-print">
-        <span className="mast__issue">Autoevaluación · Ley 81 de 2019</span>
-        <button
-          type="button"
-          className="logo"
-          onClick={() => screen.name !== 'inicio' && app.go({ name: 'inicio' })}
-          aria-label="La 81, ir al inicio"
-        >
+        <button type="button" className="logo" onClick={() => app.go(app.home)} aria-label="La 81, ir al inicio">
           La 81<sup>PA</sup>
         </button>
-        <span className="mast__right">Hecho en Panamá para negocios pequeños</span>
+        {screen.name !== 'metodologia' && (
+          <button type="button" className="link mast__link" onClick={() => app.go({ name: 'metodologia' })}>
+            Metodología
+          </button>
+        )}
       </header>
 
       <main className={`main main--${screen.name}`}>
-        {screen.name === 'inicio' && <Inicio app={app} />}
-        {screen.name === 'perfil' && (
-          <div className="split">
-            <div className="split__main">
-              <Perfil key={`p${screen.step}`} app={app} step={screen.step} />
-            </div>
-            <figure className="plate plate--flow">
-              <Drawing scene={scene} statuses={{}} label="Dibujo de tu negocio" />
-            </figure>
-          </div>
-        )}
+        {screen.name === 'inicio' && <Inicio app={app} scene={scene} statuses={statuses} />}
+        {screen.name === 'perfil' && <Perfil key={`p${screen.step}`} app={app} step={screen.step} scene={scene} />}
         {inTour && (
           <Recorrido
             app={app}
@@ -56,7 +47,7 @@ export function App() {
         {screen.name === 'metodologia' && <Metodologia app={app} />}
       </main>
 
-      <Disclaimer onMetodo={screen.name === 'metodologia' ? undefined : () => app.go({ name: 'metodologia' })} />
+      {!full && <Disclaimer />}
     </div>
   );
 }
