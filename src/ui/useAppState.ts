@@ -10,9 +10,21 @@ export type Screen =
   | { name: 'perfil'; step: number }
   | { name: 'cuestionario'; index: number }
   | { name: 'profundizar'; area: AreaId; index: number }
-  | { name: 'resultados' };
+  | { name: 'resultados' }
+  | { name: 'metodologia' };
 
 const INICIO: Screen = { name: 'inicio' };
+const METODO_HASH = '#metodologia';
+
+/** La metodología tiene dirección propia para poder enlazarla; el resto de pantallas comparte la raíz. */
+function urlFor(screen: Screen): string {
+  const base = window.location.pathname + window.location.search;
+  return screen.name === 'metodologia' ? base + METODO_HASH : base;
+}
+
+function initialScreen(): Screen {
+  return window.location.hash === METODO_HASH ? { name: 'metodologia' } : INICIO;
+}
 
 function isScreen(value: unknown): value is Screen {
   if (typeof value !== 'object' || value === null) return false;
@@ -20,6 +32,7 @@ function isScreen(value: unknown): value is Screen {
   switch (s.name) {
     case 'inicio':
     case 'resultados':
+    case 'metodologia':
       return true;
     case 'perfil':
       return typeof s.step === 'number';
@@ -35,7 +48,7 @@ function isScreen(value: unknown): value is Screen {
 /** Estado de la app: pantalla actual, perfil y respuestas. Guarda solo en este dispositivo. */
 export function useAppState() {
   const saved = useMemo(() => loadState(), []);
-  const [screen, setScreen] = useState<Screen>(INICIO);
+  const [screen, setScreen] = useState<Screen>(initialScreen);
   const [profile, setProfile] = useState<Profile>(saved?.profile ?? {});
   const [answers, setAnswers] = useState<Answers>(saved?.answers ?? {});
   const [savedAt, setSavedAt] = useState<string | null>(saved?.updatedAt ?? null);
@@ -46,18 +59,31 @@ export function useAppState() {
 
   // El botón "atrás" del navegador navega entre pantallas en lugar de salir del sitio.
   useEffect(() => {
-    window.history.replaceState({ screen: INICIO }, '');
+    const first = initialScreen();
+    window.history.replaceState({ screen: first }, '', urlFor(first));
     const onPop = (event: PopStateEvent) => {
       const state: unknown = event.state;
       const next = typeof state === 'object' && state !== null ? (state as { screen?: unknown }).screen : undefined;
       setScreen(isScreen(next) ? next : INICIO);
     };
+    // Enlace directo a la metodología escrito o pegado con la página ya abierta.
+    const onHash = () => {
+      if (window.location.hash !== METODO_HASH) return;
+      const next: Screen = { name: 'metodologia' };
+      window.history.replaceState({ screen: next }, '', urlFor(next));
+      setScreen(next);
+      window.scrollTo({ top: 0 });
+    };
     window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
+    window.addEventListener('hashchange', onHash);
+    return () => {
+      window.removeEventListener('popstate', onPop);
+      window.removeEventListener('hashchange', onHash);
+    };
   }, []);
 
   const go = useCallback((next: Screen) => {
-    window.history.pushState({ screen: next }, '');
+    window.history.pushState({ screen: next }, '', urlFor(next));
     setScreen(next);
     window.scrollTo({ top: 0 });
   }, []);
@@ -83,7 +109,7 @@ export function useAppState() {
     setProfile({});
     setAnswers({});
     setSavedAt(null);
-    window.history.replaceState({ screen: INICIO }, '');
+    window.history.replaceState({ screen: INICIO }, '', urlFor(INICIO));
     setScreen(INICIO);
     window.scrollTo({ top: 0 });
   }, []);
