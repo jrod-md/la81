@@ -1983,6 +1983,79 @@ ul {
   }
 }
 
+/* Teléfono: la tarjeta crece sobre el dibujo antes de hacer desplazar la página. */
+@media (max-width: 54.99rem) {
+  .room {
+    height: 100dvh;
+  }
+  .room__stage {
+    flex: 1 1 var(--stage-h);
+    min-height: 11rem;
+  }
+  .fx {
+    min-height: 0;
+  }
+  .fx__hint {
+    display: none;
+  }
+  .dock__foot {
+    padding-top: 0.6rem;
+  }
+  .btn {
+    white-space: nowrap;
+  }
+}
+@media (max-width: 30rem) {
+  /* Los catorce tipos caben a la vista: dos columnas de renglones con el dibujo a la izquierda. */
+  .fichas--muchas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.375rem;
+  }
+  .fichas--muchas .ficha {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.4rem 0.25rem 0.5rem;
+    text-align: left;
+  }
+  .fichas--muchas .ficha__ico {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-bottom: 0;
+  }
+  .fichas--muchas .ficha__t {
+    font-size: 0.9375rem;
+  }
+  .fichas--muchas .ficha__s {
+    display: none;
+  }
+  /* El renglón elegido ya se marca con borde y fondo. */
+  .fichas--muchas .ficha__mark {
+    display: none;
+  }
+  .sheet__set:has(.fichas--muchas) .sheet__hint {
+    display: none;
+  }
+  .room--perfil .sheet__intro {
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.6rem;
+    font-size: 0.8125rem;
+  }
+  /* Regreso: el botón ocupa el ancho y «Empezar de nuevo» va debajo. */
+  .room--inicio .sheet__nav {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.25rem;
+    text-align: center;
+  }
+  .room--inicio .sheet__nav > .link,
+  .room--inicio .sheet__nav > .confirm {
+    align-self: center;
+  }
+}
+
 /* Pantalla ancha: el dibujo ocupa toda la ventana y la tarjeta flota encima */
 @media (min-width: 55rem) {
   .room {

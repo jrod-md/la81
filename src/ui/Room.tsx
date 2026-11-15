@@ -49,8 +49,15 @@ export function useRoom() {
   return { stageRef, topRef, dockRef, geo };
 }
 
+/** En teléfono el margen del encuadre común (pensado para las etiquetas) se recorta: el lugar se ve más grande. */
+const NARROW = 560;
+function tight(vb: ViewBox): ViewBox {
+  return [vb[0] + vb[2] * 0.15, vb[1] + vb[3] * 0.12, vb[2] * 0.85, vb[3] * 0.76];
+}
+
 /** Encuadre que muestra el dibujo completo dentro de la franja visible. */
-export function fitView(vb: ViewBox, g: RoomGeo, pad = 20): ViewBox {
+export function fitView(full: ViewBox, g: RoomGeo, pad = g.w < NARROW ? 6 : 20): ViewBox {
+  const vb = g.w < NARROW ? tight(full) : full;
   const bw = Math.max(80, g.w - pad * 2);
   const bh = Math.max(80, g.bottom - g.top - pad * 2);
   const upp = Math.max(vb[2] / bw, vb[3] / bh);
@@ -68,10 +75,10 @@ export function fitView(vb: ViewBox, g: RoomGeo, pad = 20): ViewBox {
 export function closeView(scene: Scene, area: AreaId, g: RoomGeo, wide: boolean): { view: ViewBox; anchor: { x: number; y: number } | null } {
   const vb = scene.viewBox;
   const band = Math.max(120, g.bottom - g.top);
-  const upp = wide ? (0.68 * vb[3]) / band : (0.5 * vb[2]) / g.w;
+  const upp = wide ? (0.68 * vb[3]) / band : (0.6 * vb[2]) / g.w;
   const c = scene.callouts.find((x) => x.area === area);
   if (!c) return { view: fitView(vb, g), anchor: null };
   const ax = wide ? g.w * 0.4 : g.w / 2;
-  const ay = wide ? g.top + band * 0.74 : g.top + band * 0.55;
+  const ay = wide ? g.top + band * 0.74 : g.top + band * 0.62;
   return { view: [c.anchor.x - ax * upp, c.anchor.y - ay * upp, g.w * upp, g.h * upp], anchor: { x: ax, y: ay } };
 }
